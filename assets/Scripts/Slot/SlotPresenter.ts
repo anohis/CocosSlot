@@ -1,5 +1,6 @@
 import { log } from "cc";
 import type { ISlotView } from "./SlotView";
+import { ISlotModel } from "./SlotModel";
 
 export interface ISlotPresenter
 {
@@ -9,10 +10,14 @@ export interface ISlotPresenter
 export class SlotPresenter implements ISlotPresenter
 {
     private readonly _view: ISlotView;
+    private readonly _model: ISlotModel;
 
-    constructor(view: ISlotView)
+    constructor(
+        view: ISlotView,
+        model: ISlotModel)
     {
         this._view = view;
+        this._model = model;
     }
 
     public async Open(): Promise<void>

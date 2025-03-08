@@ -2,6 +2,7 @@
 import { SlotScene } from './Slot/SlotScene';
 import { ISlotPresenter } from './Slot/SlotPresenter';
 import { ApplicationContext, IApplicationContext } from './ApplicationContext';
+import { IUserContext, UserContext } from './UserContext';
 const { ccclass } = _decorator;
 
 @ccclass('MainScene')
@@ -26,7 +27,8 @@ class Main
     public async Run(): Promise<void>
     {
         const applicationContext = this.CreateApplicationContext();
-        const presenter = await this.Install(applicationContext);
+        const userContext = this.CreateUserContext();
+        const presenter = await this.Install(applicationContext, userContext);
         await presenter.Open();
     }
 
@@ -35,13 +37,22 @@ class Main
         return new ApplicationContext(this._mainScene);
     }
 
-    private async Install(applicationContext: IApplicationContext): Promise<ISlotPresenter>
+    private CreateUserContext(): IUserContext
     {
-        const presenter = await this.InstallSlotScene(applicationContext);
+        return new UserContext();
+    }
+
+    private async Install(
+        applicationContext: IApplicationContext,
+        userContext: IUserContext): Promise<ISlotPresenter>
+    {
+        const presenter = await this.InstallSlotScene(applicationContext, userContext);
         return presenter;
     }
 
-    private async InstallSlotScene(applicationContext: IApplicationContext): Promise<ISlotPresenter>
+    private async InstallSlotScene(
+        applicationContext: IApplicationContext,
+        userContext: IUserContext): Promise<ISlotPresenter>
     {
         const scenePrefab = await applicationContext.AssetLoader.Load("Scene/SlotScene", Prefab);
         const slotScene = instantiate(scenePrefab);
@@ -49,6 +60,6 @@ class Main
 
         return slotScene
             .getComponent(SlotScene)
-            .Install();
+            .Install(userContext.SlotModel);
     }
 }
