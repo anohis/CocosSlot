@@ -1,5 +1,7 @@
-import { _decorator, Component, instantiate, log, Prefab, resources, Scene } from 'cc';
-import { AssetLoader, IAssetLoader } from './AssetLoader';
+﻿import { _decorator, Component, instantiate, log, Prefab, Scene } from 'cc';
+import { SlotScene } from './Slot/SlotScene';
+import { ISlotPresenter } from './Slot/SlotPresenter';
+import { ApplicationContext, IApplicationContext } from './ApplicationContext';
 const { ccclass } = _decorator;
 
 @ccclass('MainScene')
@@ -23,19 +25,30 @@ class Main
 
     public async Run(): Promise<void>
     {
-        const assetLoader = new AssetLoader();
-
-        await this.LoadSlotScene(
-            this._mainScene,
-            assetLoader);
+        const applicationContext = this.CreateApplicationContext();
+        const presenter = await this.Install(applicationContext);
+        await presenter.Open();
     }
 
-    private async LoadSlotScene(
-        scene: Scene,
-        assetLoader: IAssetLoader): Promise<void>
+    private CreateApplicationContext(): IApplicationContext
     {
-        const scenePrefab = await assetLoader.Load("Scene/SlotScene", Prefab);
+        return new ApplicationContext(this._mainScene);
+    }
+
+    private async Install(applicationContext: IApplicationContext): Promise<ISlotPresenter>
+    {
+        const presenter = await this.InstallSlotScene(applicationContext);
+        return presenter;
+    }
+
+    private async InstallSlotScene(applicationContext: IApplicationContext): Promise<ISlotPresenter>
+    {
+        const scenePrefab = await applicationContext.AssetLoader.Load("Scene/SlotScene", Prefab);
         const slotScene = instantiate(scenePrefab);
-        scene.addChild(slotScene);
+        applicationContext.MainScene.addChild(slotScene);
+
+        return slotScene
+            .getComponent(SlotScene)
+            .Install();
     }
 }
