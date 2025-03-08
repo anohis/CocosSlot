@@ -3,6 +3,8 @@ import { SlotScene } from './Slot/SlotScene';
 import { ISlotPresenter } from './Slot/SlotPresenter';
 import { ApplicationContext, IApplicationContext } from './ApplicationContext';
 import { IUserContext, UserContext } from './UserContext';
+import { IMainPagePresenter } from './MainPage/MainPagePresenter';
+import { MainPageScene } from './MainPage/MainPageScene';
 const { ccclass } = _decorator;
 
 @ccclass('MainScene')
@@ -28,8 +30,11 @@ class Main
     {
         const applicationContext = this.CreateApplicationContext();
         const userContext = this.CreateUserContext();
-        const presenter = await this.Install(applicationContext, userContext);
-        await presenter.Open();
+
+        const mainPagePresenter = await this.InstallMainPageScene(applicationContext, userContext);
+        await mainPagePresenter.Open();
+        const slotPresenter = await this.InstallSlotScene(applicationContext, userContext);
+        await slotPresenter.Open();
     }
 
     private CreateApplicationContext(): IApplicationContext
@@ -42,12 +47,17 @@ class Main
         return new UserContext();
     }
 
-    private async Install(
+    private async InstallMainPageScene(
         applicationContext: IApplicationContext,
-        userContext: IUserContext): Promise<ISlotPresenter>
+        userContext: IUserContext): Promise<IMainPagePresenter>
     {
-        const presenter = await this.InstallSlotScene(applicationContext, userContext);
-        return presenter;
+        const scenePrefab = await applicationContext.AssetLoader.Load("Scene/MainPageScene", Prefab);
+        const scene = instantiate(scenePrefab);
+        applicationContext.MainScene.addChild(scene);
+
+        return scene
+            .getComponent(MainPageScene)
+            .Install();
     }
 
     private async InstallSlotScene(
@@ -55,10 +65,10 @@ class Main
         userContext: IUserContext): Promise<ISlotPresenter>
     {
         const scenePrefab = await applicationContext.AssetLoader.Load("Scene/SlotScene", Prefab);
-        const slotScene = instantiate(scenePrefab);
-        applicationContext.MainScene.addChild(slotScene);
+        const scene = instantiate(scenePrefab);
+        applicationContext.MainScene.addChild(scene);
 
-        return slotScene
+        return scene
             .getComponent(SlotScene)
             .Install(userContext.SlotModel);
     }
