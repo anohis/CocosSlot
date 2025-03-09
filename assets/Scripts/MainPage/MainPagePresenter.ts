@@ -59,6 +59,10 @@ export class MainPagePresenter implements IMainPagePresenter
 
     private Login()
     {
+        if (this._state !== State.Idle)
+        {
+            return;
+        }
         this._state = State.Login;
     }
 }
