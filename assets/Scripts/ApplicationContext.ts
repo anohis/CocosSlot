@@ -1,30 +1,26 @@
-import { Scene } from "cc";
+import { Camera, Scene } from "cc";
 import { AssetLoader, IAssetLoader } from "./AssetLoader";
+import { CanvasManager, ICanvasManager } from "./CanvasManager";
 
 export interface IApplicationContext
 {
-    get MainScene(): Scene;
-    get AssetLoader(): IAssetLoader;
+    readonly MainScene: Scene;
+    readonly CanvasManager: ICanvasManager;
+    readonly AssetLoader: IAssetLoader;
 }
 
 export class ApplicationContext implements IApplicationContext
 {
-    private readonly _mainScene: Scene;
-    private readonly _assetLoader: IAssetLoader;
+    public readonly MainScene: Scene;
+    public readonly CanvasManager: ICanvasManager;
+    public readonly AssetLoader: IAssetLoader;
    
-    constructor(mainScene: Scene)
+    constructor(
+        mainScene: Scene,
+        mainCamera: Camera)
     {
-        this._mainScene = mainScene;
-        this._assetLoader = new AssetLoader();
-    }
-
-    public get MainScene(): Scene
-    {
-        return this._mainScene;
-    }
-
-    public get AssetLoader(): IAssetLoader
-    {
-        return this._assetLoader;
+        this.MainScene = mainScene;
+        this.CanvasManager = new CanvasManager(mainCamera);
+        this.AssetLoader = new AssetLoader();
     }
 }

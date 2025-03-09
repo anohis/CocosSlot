@@ -1,29 +1,31 @@
-﻿import { _decorator, Component, instantiate, log, Prefab, Scene } from 'cc';
+﻿import { _decorator, Camera, Component, instantiate, log, Prefab, Scene } from 'cc';
 import { SlotScene } from './Slot/SlotScene';
 import { ISlotPresenter } from './Slot/SlotPresenter';
 import { ApplicationContext, IApplicationContext } from './ApplicationContext';
 import { IUserContext, UserContext } from './UserContext';
 import { IMainPagePresenter } from './MainPage/MainPagePresenter';
 import { MainPageScene } from './MainPage/MainPageScene';
-const { ccclass } = _decorator;
+const { ccclass, property } = _decorator;
 
 @ccclass('MainScene')
 export class MainScene extends Component
 {
+    @property(Camera)
+    private camera: Camera;
+
     public start()
     {
-        const main = new Main(this.node.scene);
+        const main = new Main(this.node.scene, this.camera);
         main.Run();
     }
 }
 
 class Main
 {
-    private readonly _mainScene: Scene;
-
-    constructor(mainScene: Scene)
+    constructor(
+        private readonly _mainScene: Scene,
+        private readonly _mainCamera: Camera)
     {
-        this._mainScene = mainScene;
     }
 
     public async Run(): Promise<void>
@@ -33,13 +35,14 @@ class Main
 
         const mainPagePresenter = await this.InstallMainPageScene(applicationContext, userContext);
         await mainPagePresenter.Open();
+
         const slotPresenter = await this.InstallSlotScene(applicationContext, userContext);
         await slotPresenter.Open();
     }
 
     private CreateApplicationContext(): IApplicationContext
     {
-        return new ApplicationContext(this._mainScene);
+        return new ApplicationContext(this._mainScene, this._mainCamera);
     }
 
     private CreateUserContext(): IUserContext
@@ -57,7 +60,7 @@ class Main
 
         return scene
             .getComponent(MainPageScene)
-            .Install();
+            .Install(applicationContext.CanvasManager);
     }
 
     private async InstallSlotScene(

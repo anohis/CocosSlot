@@ -1,0 +1,1 @@
+export type Func<TResult = void, TArgs extends any[] = []> = (...args: TArgs) => TResult;

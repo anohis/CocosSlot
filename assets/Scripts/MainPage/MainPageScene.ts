@@ -1,6 +1,8 @@
-import { _decorator, Component } from 'cc';
-import { IMainPageView, MainPageView } from './MainPageView';
+import { _decorator, Component, log } from 'cc';
+import { IMainPageView, MainPageView, Property } from './MainPageView';
 import { IMainPagePresenter, MainPagePresenter } from './MainPagePresenter';
+import { Func } from '../Utils/Func';
+import { ICanvasManager } from '../CanvasManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('MainPageScene')
@@ -9,9 +11,9 @@ export class MainPageScene extends Component
     @property(MainPageView)
     private view: MainPageView;
 
-    public Install(): IMainPagePresenter
+    public Install(canvasManager: ICanvasManager): IMainPagePresenter
     {
-        const view = new MainPageViewProxy(this.view);
+        const view = new MainPageViewProxy(this.view, canvasManager);
         const presenter = new MainPagePresenterProxy(view);
         return presenter;
     }
@@ -19,7 +21,7 @@ export class MainPageScene extends Component
 
 class MainPagePresenterProxy implements IMainPagePresenter
 {
-    private readonly _resolver: () => IMainPagePresenter;
+    private readonly _resolver: Func<IMainPagePresenter>;
     private _instance: IMainPagePresenter;
 
     constructor(
@@ -44,25 +46,27 @@ class MainPagePresenterProxy implements IMainPagePresenter
 
 class MainPageViewProxy implements IMainPageView
 {
-    private readonly _resolver: () => IMainPageView;
+    private readonly _resolver: Func<IMainPageView>;
     private _instance: IMainPageView;
 
-    constructor(view: MainPageView)
+    constructor(
+        view: MainPageView,
+        canvasManager: ICanvasManager)
     {
         this._instance = null;
         this._resolver = () =>
         {
-            view.Init();
+            view.Init(canvasManager);
             return view;
         };
     }
 
-    public Render(): Promise<void>
+    public Render(prop: Property): Promise<void>
     {
         if (this._instance == null)
         {
             this._instance = this._resolver();
         }
-        return this._instance.Render();
+        return this._instance.Render(prop);
     }
 }
