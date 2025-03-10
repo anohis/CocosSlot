@@ -10,7 +10,7 @@ export class ScrollLayoutBuilder
 
     private _root: IElement;
 
-    constructor()
+    constructor(private readonly _scrollView: ScrollView)
     {
         this._root = EmptyElement.Instance;
         this._addElementVisitor = new AddElementVisitor();
@@ -88,10 +88,10 @@ export class ScrollLayoutBuilder
         return this;
     }
 
-    public Build(): IElement
+    public Build(): ScrollLayout
     {
         this._root.Accept(this._layoutVisitor);
-        return this._root;
+        return new ScrollLayout(this._scrollView, this._root);
     }
 
     private get CurrentLayout(): IElement
@@ -116,13 +116,11 @@ export class ScrollLayout
 {
     private readonly _drawVisitor: DrawVisitor;
     private readonly _checkVisibleVisitor: CheckVisibleVisitor;
-    private readonly _root: IElement;
 
     constructor(
         private readonly _scrollView: ScrollView,
-        builder: ScrollLayoutBuilder)
+        private readonly _root: IElement)
     {
-        this._root = builder.Build();
         this._drawVisitor = new DrawVisitor();
         this._checkVisibleVisitor = new CheckVisibleVisitor(this._scrollView);
 
