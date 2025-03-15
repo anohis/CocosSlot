@@ -50,7 +50,7 @@ class Main
         const navigator = new Navigator(lobbyPath);
 
         const lobbyPresenter = await this.InstallLobbyScene(applicationContext, userContext, navigator);
-        const slotPresenter = await this.InstallSlotScene(applicationContext, userContext);
+        const slotPresenter = await this.InstallSlotScene(applicationContext, userContext, navigator);
 
         const router = new Router(
             navigator,
@@ -111,7 +111,8 @@ class Main
 
     private async InstallSlotScene(
         applicationContext: IApplicationContext,
-        userContext: IUserContext): Promise<ISlotPresenter>
+        userContext: IUserContext,
+        navigator: INavigator): Promise<ISlotPresenter>
     {
         const scenePrefab = await applicationContext.AssetLoader.Load("Scene/SlotScene", Prefab);
         const scene = instantiate(scenePrefab);
@@ -119,6 +120,6 @@ class Main
 
         return scene
             .getComponent(SlotScene)
-            .Install(userContext.SlotModel);
+            .Install(userContext.SlotModel, navigator, applicationContext.CanvasManager);
     }
 }

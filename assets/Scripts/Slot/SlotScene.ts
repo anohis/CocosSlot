@@ -1,7 +1,9 @@
 import { _decorator, Component, log } from 'cc';
-import { ISlotView, SlotView } from './SlotView';
+import { ISlotView, Property, SlotView } from './SlotView';
 import { ISlotPresenter, SlotPresenter } from './SlotPresenter';
 import { ISlotModel } from './SlotModel';
+import { INavigator } from '../Navigator/Navigator';
+import { ICanvasManager } from '../CanvasManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('SlotScene')
@@ -10,10 +12,13 @@ export class SlotScene extends Component
     @property(SlotView)
     private view: SlotView;
 
-    public Install(slotModel: ISlotModel): ISlotPresenter
+    public Install(
+        slotModel: ISlotModel,
+        navigator: INavigator,
+        canvasManager: ICanvasManager): ISlotPresenter
     {
-        const view = new SlotViewProxy(this.view);
-        const presenter = new SlotPresenterProxy(view, slotModel);
+        const view = new SlotViewProxy(this.view, canvasManager);
+        const presenter = new SlotPresenterProxy(view, slotModel, navigator);
         return presenter;
     }
 }
@@ -25,12 +30,13 @@ class SlotPresenterProxy implements ISlotPresenter
 
     constructor(
         view: ISlotView,
-        model: ISlotModel)
+        model: ISlotModel,
+        navigator: INavigator)
     {
         this._instance = null;
         this._resolver = () =>
         {
-            return new SlotPresenter(view, model);
+            return new SlotPresenter(view, model, navigator);
         }
     }
 
@@ -49,22 +55,24 @@ class SlotViewProxy implements ISlotView
     private readonly _resolver: () => ISlotView;
     private _instance: ISlotView;
 
-    constructor(view: SlotView)
+    constructor(
+        view: SlotView,
+        canvasManager: ICanvasManager)
     {
         this._instance = null;
         this._resolver = () =>
         {
-            view.Init();
+            view.Init(canvasManager);
             return view;
         };
     }
 
-    public Render(): Promise<void>
+    public Render(prop: Property): void
     {
         if (this._instance == null)
         {
             this._instance = this._resolver();
         }
-        return this._instance.Render();
+        this._instance.Render(prop);
     }
 }

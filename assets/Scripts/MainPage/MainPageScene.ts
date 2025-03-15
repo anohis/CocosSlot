@@ -61,12 +61,12 @@ class MainPageViewProxy implements IMainPageView
         };
     }
 
-    public Render(prop: Property): Promise<void>
+    public Render(prop: Property): void
     {
         if (this._instance == null)
         {
             this._instance = this._resolver();
         }
-        return this._instance.Render(prop);
+        this._instance.Render(prop);
     }
 }

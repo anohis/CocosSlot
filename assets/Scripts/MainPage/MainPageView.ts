@@ -7,7 +7,7 @@ const { ccclass, property } = _decorator;
 
 export interface IMainPageView
 {
-    Render(prop: Property): Promise<void>
+    Render(prop: Property): void
 }
 
 export class Property
@@ -53,7 +53,7 @@ export class MainPageView extends Component implements IMainPageView
             handler => this.loginBtn.node.off('click', handler, this));
     }
 
-    public async Render(prop: Property): Promise<void>
+    public Render(prop: Property): void
     {
         this.canvas.IsVisible = prop.IsVisible;
         if (!prop.IsVisible)
@@ -62,6 +62,5 @@ export class MainPageView extends Component implements IMainPageView
         }
 
         this._onClickEventBinder.ReBind(prop.OnLoginBtnClicked);
-        await Promise.resolve();
     }
 }

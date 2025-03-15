@@ -1,20 +1,66 @@
-import { _decorator, Component, log, } from 'cc';
+import { _decorator, Button, Component, log, } from 'cc';
+import { Action } from '../Utils/Action';
+import { ManagedCanvas } from '../UI/ManagedCanvas';
+import { ICanvasManager } from '../CanvasManager';
+import { EventBinder } from '../Utils/EventBinder';
 const { ccclass, property } = _decorator;
 
 export interface ISlotView
 {
-    Render(): Promise<void>;
+    Render(prop: Property): void;
+}
+
+export class Property
+{
+    public static readonly Default: Property = new Property(false, null);
+
+    constructor(
+        public readonly IsVisible: boolean,
+        public readonly OnBackBtnClicked: Action)
+    {
+    }
+
+    public With(overrides: Partial<Property>): Property
+    {
+        return Object.assign(new Property(this.IsVisible, this.OnBackBtnClicked), overrides);
+    }
 }
 
 @ccclass('SlotView')
 export class SlotView extends Component implements ISlotView
 {
-    public Init(): void
+    @property(ManagedCanvas)
+    private canvas: ManagedCanvas;
+    @property(Button)
+    private backBtn: Button;
+
+    private _canvasManager: ICanvasManager
+    private _backBtnClickEvent: EventBinder<Action>;
+
+    public onDestroy(): void
     {
+        this._backBtnClickEvent.Dispose();
+        this._canvasManager.Unregister(this.canvas);
     }
 
-    public Render(): Promise<void>
+    public Init(canvasManager: ICanvasManager): void
     {
-        return Promise.resolve();
+        this._canvasManager = canvasManager;
+        this._canvasManager.Register(this.canvas);
+
+        this._backBtnClickEvent = new EventBinder(
+            handler => this.backBtn.node.on('click', handler, this),
+            handler => this.backBtn.node.off('click', handler, this));
+    }
+
+    public Render(prop: Property): void
+    {
+        this.canvas.IsVisible = prop.IsVisible;
+        if (!prop.IsVisible)
+        {
+            return;
+        }
+
+        this._backBtnClickEvent.ReBind(prop.OnBackBtnClicked);
     }
 }
