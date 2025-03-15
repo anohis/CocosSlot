@@ -2,6 +2,7 @@ import { _decorator, Button, Component, Sprite, SpriteFrame } from 'cc';
 import { Action } from '../Utils/Action';
 import { EventBinder } from '../Utils/EventBinder';
 import { IAssetLoader } from '../AssetLoader';
+import { GetButtonClickEventBinder } from '../UI/ButtonEventBinder';
 const { ccclass, property } = _decorator;
 
 export interface ILobbySlotElementView
@@ -37,9 +38,7 @@ export class LobbySlotElementView extends Component implements ILobbySlotElement
     public Init(assetLoader: IAssetLoader): void
     {
         this._assetLoader = assetLoader;
-        this._buttonClickEvent = new EventBinder(
-            handler => this.button.node.on('click', handler, this),
-            handler => this.button.node.off('click', handler, this));
+        this._buttonClickEvent = GetButtonClickEventBinder(this.button);
     }
 
     public Render(prop: Property): void

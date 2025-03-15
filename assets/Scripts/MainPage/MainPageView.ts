@@ -3,6 +3,7 @@ import { Action } from '../Utils/Action';
 import { EventBinder } from '../Utils/EventBinder';
 import { ManagedCanvas } from '../UI/ManagedCanvas';
 import { ICanvasManager } from '../CanvasManager';
+import { GetButtonClickEventBinder } from '../UI/ButtonEventBinder';
 const { ccclass, property } = _decorator;
 
 export interface IMainPageView
@@ -48,9 +49,7 @@ export class MainPageView extends Component implements IMainPageView
         this._canvasManager = canvasManager;
         this._canvasManager.Register(this.canvas);
 
-        this._onClickEventBinder = new EventBinder(
-            handler => this.loginBtn.node.on('click', handler, this),
-            handler => this.loginBtn.node.off('click', handler, this));
+        this._onClickEventBinder = GetButtonClickEventBinder(this.loginBtn);
     }
 
     public Render(prop: Property): void

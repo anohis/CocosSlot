@@ -3,6 +3,7 @@ import { Action } from '../Utils/Action';
 import { ManagedCanvas } from '../UI/ManagedCanvas';
 import { ICanvasManager } from '../CanvasManager';
 import { EventBinder } from '../Utils/EventBinder';
+import { GetButtonClickEventBinder } from '../UI/ButtonEventBinder';
 const { ccclass, property } = _decorator;
 
 export interface ISlotView
@@ -48,9 +49,7 @@ export class SlotView extends Component implements ISlotView
         this._canvasManager = canvasManager;
         this._canvasManager.Register(this.canvas);
 
-        this._backBtnClickEvent = new EventBinder(
-            handler => this.backBtn.node.on('click', handler, this),
-            handler => this.backBtn.node.off('click', handler, this));
+        this._backBtnClickEvent = GetButtonClickEventBinder(this.backBtn);
     }
 
     public Render(prop: Property): void
