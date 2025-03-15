@@ -1,6 +1,6 @@
 import { log } from "cc";
 import { Action } from "../Utils/Action";
-import { DelayPromise } from "../Utils/DelayPromise";
+import { NextFrame } from "../Utils/Promise/DelayPromise";
 import { ReactiveProperty } from "../Utils/ReactiveProperty";
 import { ILobbyModel } from "./LobbyModel";
 import { ILobbyView, Property } from "./LobbyView";
@@ -30,7 +30,7 @@ export class LobbyPresenter implements ILobbyPresenter
         while (this._state !== State.Close)
         {
             this._state = this.HandleState(this._state);
-            await DelayPromise.NextFrame();
+            await NextFrame();
         }
 
         this._prop.Value = this._prop.Value.With({ IsVisible: false });

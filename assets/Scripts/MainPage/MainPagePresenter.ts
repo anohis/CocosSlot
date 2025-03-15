@@ -1,7 +1,7 @@
 import { log } from 'cc';
 import { ReactiveProperty } from '../Utils/ReactiveProperty';
 import { IMainPageView, Property } from './MainPageView';
-import { DelayPromise } from '../Utils/DelayPromise';
+import { NextFrame } from '../Utils/Promise/DelayPromise';
 
 export interface IMainPagePresenter
 {
@@ -27,7 +27,7 @@ export class MainPagePresenter implements IMainPagePresenter
         while (this._state !== State.Close)
         {
             this._state = this.HandleState(this._state);
-            await DelayPromise.NextFrame();
+            await NextFrame();
         }
 
         this._prop.Value = this._prop.Value.With({ IsVisible: false });
