@@ -1,4 +1,4 @@
-import { Asset, __private, resources } from 'cc';
+import { Asset, __private, log, resources } from 'cc';
 
 type AssetType<T> = __private.__types_globals__Constructor<T>;
 

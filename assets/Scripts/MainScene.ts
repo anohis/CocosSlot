@@ -78,7 +78,7 @@ class Main
 
         return scene
             .getComponent(LobbyScene)
-            .Install(applicationContext.CanvasManager);
+            .Install(applicationContext.CanvasManager, applicationContext.AssetLoader);
     }
 
     private async InstallSlotScene(

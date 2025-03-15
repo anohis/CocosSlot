@@ -117,6 +117,7 @@ export class ScrollLayout
     private readonly _drawVisitor: DrawVisitor;
     private readonly _checkVisibleVisitor: CheckVisibleVisitor;
     private readonly _disposeVisitor: DisposeVisitor;
+
     constructor(
         private readonly _scrollView: ScrollView,
         private readonly _root: IElement)
@@ -125,6 +126,7 @@ export class ScrollLayout
         this._checkVisibleVisitor = new CheckVisibleVisitor(this._scrollView);
         this._disposeVisitor = new DisposeVisitor();
 
+        this._scrollView.content.getComponent(UITransform).contentSize = this._root.Size;
         this._scrollView.node.on('scrolling', this.Render, this);
     }
 
@@ -135,6 +137,18 @@ export class ScrollLayout
         this._checkVisibleVisitor.End();
         this._drawVisitor.Reset();
         this._root.Accept(this._drawVisitor);
+    }
+
+    public ScrollToHead(): void
+    {
+        if (this._scrollView.vertical)
+        {
+            this._scrollView.scrollToTop();
+        }
+        else
+        {
+            this._scrollView.scrollToLeft();
+        }
     }
 
     public Dispose(): void
@@ -358,10 +372,7 @@ class CheckVisibleVisitor implements IVisitor
 
     public VisitElement(element: Element): void
     {
-        const rect = GetRect(
-            element.Position.clone().add(this._worldPosition),
-            element.Size);
-
+        const rect = this.GetRect(element);
         if (IsOverlap(this._viewRect, rect))
         {
             this._curr.add(element);
@@ -370,10 +381,7 @@ class CheckVisibleVisitor implements IVisitor
 
     public VisitPooledElement<T>(element: PooledElement<T>): void
     {
-        const rect = GetRect(
-            element.Position.clone().add(this._worldPosition),
-            element.Size);
-
+        const rect = this.GetRect(element);
         if (IsOverlap(this._viewRect, rect))
         {
             this._curr.add(element);
@@ -382,11 +390,7 @@ class CheckVisibleVisitor implements IVisitor
 
     public VisitHorizontalLayout(layout: HorizontalLayout): void
     {
-        const worldPosition = layout.Position.clone().add(this._worldPosition);
-        const rect = GetRect(
-            worldPosition,
-            layout.Size);
-
+        const rect = this.GetRect(layout);
         if (!IsOverlap(this._viewRect, rect))
         {
             return;
@@ -395,18 +399,14 @@ class CheckVisibleVisitor implements IVisitor
         this._curr.add(layout);
 
         const previousWorldPosition = this._worldPosition;
-        this._worldPosition = worldPosition;
+        this._worldPosition = this.GetWorldPosition(layout);;
         this.VisitElements(layout.Elements);
         this._worldPosition = previousWorldPosition;
     }
 
     public VisitVerticalLayout(layout: VerticalLayout): void
     {
-        const worldPosition = layout.Position.clone().add(this._worldPosition);
-        const rect = GetRect(
-            worldPosition,
-            layout.Size);
-
+        const rect = this.GetRect(layout);
         if (!IsOverlap(this._viewRect, rect))
         {
             return;
@@ -415,7 +415,7 @@ class CheckVisibleVisitor implements IVisitor
         this._curr.add(layout);
 
         const previousWorldPosition = this._worldPosition;
-        this._worldPosition = worldPosition;
+        this._worldPosition = this.GetWorldPosition(layout);
         this.VisitElements(layout.Elements);
         this._worldPosition = previousWorldPosition;
     }
@@ -433,6 +433,18 @@ class CheckVisibleVisitor implements IVisitor
             i++;
             elements[i].Accept(this);
         }
+    }
+
+    private GetRect(element: IElement): Rect
+    {
+        return GetRect(
+            this.GetWorldPosition(element),
+            element.Size);
+    }
+
+    private GetWorldPosition(element: IElement): Vec2
+    {
+        return element.Position.clone().add(this._worldPosition);
     }
 }
 

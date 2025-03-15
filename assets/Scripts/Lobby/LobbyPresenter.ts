@@ -1,3 +1,5 @@
+import { log } from "cc";
+import { Action } from "../Utils/Action";
 import { DelayPromise } from "../Utils/DelayPromise";
 import { ReactiveProperty } from "../Utils/ReactiveProperty";
 import { ILobbyModel } from "./LobbyModel";
@@ -39,6 +41,8 @@ export class LobbyPresenter implements ILobbyPresenter
     {
         return Property.Default.With({
             IsVisible: true,
+            SlotInfos: this._model.SlotInfos,
+            OnSelectSlot: () => this.ExecuteIfIdle(() => this._state = State.SelectSlot),
         });
     }
 
@@ -56,6 +60,16 @@ export class LobbyPresenter implements ILobbyPresenter
                 return State.Close;
         }
         throw new Error(`unexpected state ${state}`);
+    }
+
+    private ExecuteIfIdle(act: Action)
+    {
+        if (this._state != State.Idle)
+        {
+            return;
+        }
+
+        act();
     }
 }
 

@@ -4,6 +4,7 @@ import { ILobbyPresenter, LobbyPresenter } from './LobbyPresenter';
 import { ILobbyModel, LobbyModel, SlotInfo } from './LobbyModel';
 import { Func } from '../Utils/Func';
 import { ICanvasManager } from '../CanvasManager';
+import { IAssetLoader } from '../AssetLoader';
 const { ccclass, property } = _decorator;
 
 @ccclass('LobbyScene')
@@ -12,9 +13,11 @@ export class LobbyScene extends Component
     @property(LobbyView)
     private view: LobbyView;
 
-    public Install(canvasManager: ICanvasManager): ILobbyPresenter
+    public Install(
+        canvasManager: ICanvasManager,
+        assetLoader: IAssetLoader): ILobbyPresenter
     {
-        const view = new LobbyViewProxy(this.view, canvasManager);
+        const view = new LobbyViewProxy(this.view, canvasManager, assetLoader);
         const model = new LobbyModelProxy();
         const presenter = new LobbyPresenterProxy(view, model);
         return presenter;
@@ -52,12 +55,13 @@ class LobbyViewProxy implements ILobbyView
 
     constructor(
         view: LobbyView,
-        canvasManager: ICanvasManager)
+        canvasManager: ICanvasManager,
+        assetLoader: IAssetLoader)
     {
         this._instance = null;
         this._resolver = () =>
         {
-            view.Init(canvasManager);
+            view.Init(canvasManager, assetLoader);
             return view;
         }
     }

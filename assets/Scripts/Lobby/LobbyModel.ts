@@ -19,6 +19,11 @@ export class LobbyModel implements ILobbyModel
                 Id: "Slot002",
                 Name: "SlotName002",
                 Icon: "SlotIcon002",
+            },
+            {
+                Id: "Slot003",
+                Name: "SlotName003",
+                Icon: "SlotIcon003",
             }];
     }
 
