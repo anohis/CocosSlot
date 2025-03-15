@@ -12,6 +12,7 @@ import { INavigator, Navigator } from './Navigator/Navigator';
 import { Func } from './Utils/Func';
 import { CancelTokenSource } from './Utils/Promise/CancelablePromise';
 import { PageName } from './PageName';
+import { MakeLazy, MakeLazyAsync } from './Utils/Lazy';
 const { ccclass, property } = _decorator;
 
 @ccclass('MainScene')
@@ -49,8 +50,8 @@ class Main
         };
         const navigator = new Navigator(lobbyPath);
 
-        const lobbyPresenter = await this.InstallLobbyScene(applicationContext, userContext, navigator);
-        const slotPresenter = await this.InstallSlotScene(applicationContext, userContext, navigator);
+        const lobbyPresenter = MakeLazyAsync(() => this.InstallLobbyScene(applicationContext, userContext, navigator));
+        const slotPresenter = MakeLazyAsync(() => this.InstallSlotScene(applicationContext, userContext, navigator));
 
         const router = new Router(
             navigator,

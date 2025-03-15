@@ -19,6 +19,34 @@ export function MakeLazy<T extends object>(resolver: Func<T>): T
         });
 }
 
+export function MakeLazyAsync<T extends object>(resolver: () => Promise<T>): T
+{
+    let instance: T | null = null;
+
+    return new Proxy(
+        {} as T,
+        {
+            get(target, prop, receiver)
+            {
+                return async function ()
+                {
+                    if (instance == null)
+                    {
+                        instance = await resolver();
+                    }
+
+                    const value = Reflect.get(instance, prop, receiver);
+
+                    if (typeof value === 'function')
+                    {
+                        return value.bind(instance)();
+                    }
+                    return value;
+                };
+            },
+        });
+}
+
 export class Lazy<T>
 {
     private _instance: T;
