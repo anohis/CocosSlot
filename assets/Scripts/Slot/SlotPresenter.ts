@@ -1,6 +1,7 @@
 import { log } from "cc";
 import type { ISlotView } from "./SlotView";
 import { ISlotModel } from "./SlotModel";
+import { NextFrame } from "../Utils/Promise/DelayPromise";
 
 export interface ISlotPresenter
 {
@@ -23,6 +24,6 @@ export class SlotPresenter implements ISlotPresenter
     public async Open(): Promise<void>
     {
         this._view.Render();
-        await Promise.resolve();
+        await NextFrame();
     }
 }

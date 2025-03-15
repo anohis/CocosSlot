@@ -4,6 +4,8 @@ import { NextFrame } from "../Utils/Promise/DelayPromise";
 import { ReactiveProperty } from "../Utils/ReactiveProperty";
 import { ILobbyModel } from "./LobbyModel";
 import { ILobbyView, Property } from "./LobbyView";
+import { INavigator } from "../Navigator/Navigator";
+import { PageName } from "../PageName";
 
 export interface ILobbyPresenter
 {
@@ -17,7 +19,8 @@ export class LobbyPresenter implements ILobbyPresenter
 
     constructor(
         private readonly _view: ILobbyView,
-        private readonly _model: ILobbyModel)
+        private readonly _model: ILobbyModel,
+        private readonly _navigator: INavigator)
     {
     }
 
@@ -53,10 +56,15 @@ export class LobbyPresenter implements ILobbyPresenter
             case State.Open:
                 return State.Idle;
             case State.Idle:
+                if (!this._navigator.IsCurrent(PageName.Lobby))
+                {
+                    return State.Close;
+                }
                 return State.Idle;
             case State.Close:
                 return State.Close;
             case State.SelectSlot:
+                this._navigator.Navigate(PageName.Slot);
                 return State.Close;
         }
         throw new Error(`unexpected state ${state}`);

@@ -5,6 +5,7 @@ import { ILobbyModel, LobbyModel, SlotInfo } from './LobbyModel';
 import { Func } from '../Utils/Func';
 import { ICanvasManager } from '../CanvasManager';
 import { IAssetLoader } from '../AssetLoader';
+import { INavigator } from '../Navigator/Navigator';
 const { ccclass, property } = _decorator;
 
 @ccclass('LobbyScene')
@@ -15,11 +16,12 @@ export class LobbyScene extends Component
 
     public Install(
         canvasManager: ICanvasManager,
-        assetLoader: IAssetLoader): ILobbyPresenter
+        assetLoader: IAssetLoader,
+        navigator: INavigator): ILobbyPresenter
     {
         const view = new LobbyViewProxy(this.view, canvasManager, assetLoader);
         const model = new LobbyModelProxy();
-        const presenter = new LobbyPresenterProxy(view, model);
+        const presenter = new LobbyPresenterProxy(view, model, navigator);
         return presenter;
     }
 }
@@ -66,13 +68,13 @@ class LobbyViewProxy implements ILobbyView
         }
     }
 
-    public Render(prop: Property): Promise<void>
+    public Render(prop: Property): void
     {
         if (!this._instance)
         {
             this._instance = this._resolver();
         }
-        return this._instance.Render(prop);
+        this._instance.Render(prop);
     }
 }
 
@@ -83,12 +85,13 @@ class LobbyPresenterProxy implements ILobbyPresenter
 
     constructor(
         view: ILobbyView,
-        model: ILobbyModel)
+        model: ILobbyModel,
+        navigator: INavigator)
     {
         this._instance = null;
         this._resolver = () =>
         {
-            return new LobbyPresenter(view, model);
+            return new LobbyPresenter(view, model, navigator);
         }
     }
 
