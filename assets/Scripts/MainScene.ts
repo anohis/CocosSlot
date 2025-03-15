@@ -5,6 +5,8 @@ import { ApplicationContext, IApplicationContext } from './ApplicationContext';
 import { IUserContext, UserContext } from './UserContext';
 import { IMainPagePresenter } from './MainPage/MainPagePresenter';
 import { MainPageScene } from './MainPage/MainPageScene';
+import { LobbyScene } from './Lobby/LobbyScene';
+import { ILobbyPresenter } from './Lobby/LobbyPresenter';
 const { ccclass, property } = _decorator;
 
 @ccclass('MainScene')
@@ -36,6 +38,9 @@ class Main
         const mainPagePresenter = await this.InstallMainPageScene(applicationContext, userContext);
         await mainPagePresenter.Open();
 
+        const lobbyPresenter = await this.InstallLobbyScene(applicationContext, userContext);
+        await lobbyPresenter.Open();
+
         const slotPresenter = await this.InstallSlotScene(applicationContext, userContext);
         await slotPresenter.Open();
     }
@@ -60,6 +65,19 @@ class Main
 
         return scene
             .getComponent(MainPageScene)
+            .Install(applicationContext.CanvasManager);
+    }
+
+    private async InstallLobbyScene(
+        applicationContext: IApplicationContext,
+        userContext: IUserContext): Promise<ILobbyPresenter>
+    {
+        const scenePrefab = await applicationContext.AssetLoader.Load("Scene/LobbyScene", Prefab);
+        const scene = instantiate(scenePrefab);
+        applicationContext.MainScene.addChild(scene);
+
+        return scene
+            .getComponent(LobbyScene)
             .Install(applicationContext.CanvasManager);
     }
 

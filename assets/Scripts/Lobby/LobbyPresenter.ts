@@ -1,20 +1,21 @@
-import { log } from 'cc';
-import { ReactiveProperty } from '../Utils/ReactiveProperty';
-import { IMainPageView, Property } from './MainPageView';
-import { DelayPromise } from '../Utils/DelayPromise';
+import { DelayPromise } from "../Utils/DelayPromise";
+import { ReactiveProperty } from "../Utils/ReactiveProperty";
+import { ILobbyModel } from "./LobbyModel";
+import { ILobbyView, Property } from "./LobbyView";
 
-export interface IMainPagePresenter
+export interface ILobbyPresenter
 {
     Open(): Promise<void>;
 }
 
-export class MainPagePresenter implements IMainPagePresenter
+export class LobbyPresenter implements ILobbyPresenter
 {
     private _state: State;
     private _prop: ReactiveProperty<Property>;
 
     constructor(
-        private readonly _view: IMainPageView) 
+        private readonly _view: ILobbyView,
+        private readonly _model: ILobbyModel)
     {
     }
 
@@ -38,7 +39,7 @@ export class MainPagePresenter implements IMainPagePresenter
     {
         return Property.Default.With({
             IsVisible: true,
-            OnLoginBtnClicked: () => this.Login()});
+        });
     }
 
     private HandleState(state: State): State
@@ -51,19 +52,10 @@ export class MainPagePresenter implements IMainPagePresenter
                 return State.Idle;
             case State.Close:
                 return State.Close;
-            case State.Login:
+            case State.SelectSlot:
                 return State.Close;
         }
         throw new Error(`unexpected state ${state}`);
-    }
-
-    private Login()
-    {
-        if (this._state !== State.Idle)
-        {
-            return;
-        }
-        this._state = State.Login;
     }
 }
 
@@ -72,5 +64,5 @@ enum State
     Open,
     Idle,
     Close,
-    Login,
+    SelectSlot,
 }

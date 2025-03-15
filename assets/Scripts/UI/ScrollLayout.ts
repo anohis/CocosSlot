@@ -116,13 +116,14 @@ export class ScrollLayout
 {
     private readonly _drawVisitor: DrawVisitor;
     private readonly _checkVisibleVisitor: CheckVisibleVisitor;
-
+    private readonly _disposeVisitor: DisposeVisitor;
     constructor(
         private readonly _scrollView: ScrollView,
         private readonly _root: IElement)
     {
         this._drawVisitor = new DrawVisitor();
         this._checkVisibleVisitor = new CheckVisibleVisitor(this._scrollView);
+        this._disposeVisitor = new DisposeVisitor();
 
         this._scrollView.node.on('scrolling', this.Render, this);
     }
@@ -138,6 +139,7 @@ export class ScrollLayout
 
     public Dispose(): void
     {
+        this._root.Accept(this._disposeVisitor);
         this._scrollView.node.off('scrolling', this.Render, this);
     }
 }
@@ -488,6 +490,28 @@ class AddElementVisitor implements IVisitor
     public VisitVerticalLayout(layout: VerticalLayout): void
     {
         layout.Elements.push(this.Element);
+    }
+}
+
+class DisposeVisitor implements IVisitor
+{
+    public VisitElement(element: Element): void
+    {
+    }
+
+    public VisitPooledElement<T>(element: PooledElement<T>): void
+    {
+        element.Despawn();
+    }
+
+    public VisitHorizontalLayout(layout: HorizontalLayout): void
+    {
+        layout.Elements.forEach(element => element.Accept(this));
+    }
+
+    public VisitVerticalLayout(layout: VerticalLayout): void
+    {
+        layout.Elements.forEach(element => element.Accept(this));
     }
 }
 
