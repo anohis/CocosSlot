@@ -1,4 +1,5 @@
 import { ISlotManager, ISlotModel, SlotModelManager } from "./Slot/SlotModel";
+import { MakeLazy } from "./Utils/Lazy";
 
 export interface IUserContext
 {
@@ -13,7 +14,7 @@ export class UserContext implements IUserContext
 
     constructor()
     {
-        const slotModelManager = new SlotModelManagerProxy();
+        const slotModelManager = MakeLazy(() => new SlotModelManager());
         this._slotModel = slotModelManager;
         this._slotManager = slotModelManager;
     }
@@ -26,20 +27,5 @@ export class UserContext implements IUserContext
     public get SlotManager(): ISlotManager
     {
         return this._slotManager;
-    }
-}
-
-class SlotModelManagerProxy implements ISlotModel, ISlotManager
-{
-    private readonly _resolver: () => SlotModelManager;
-    private _instance: SlotModelManager;
-
-    constructor()
-    {
-        this._instance = null;
-        this._resolver = () =>
-        {
-            return new SlotModelManager();
-        };
     }
 }

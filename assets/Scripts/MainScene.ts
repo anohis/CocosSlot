@@ -1,4 +1,4 @@
-﻿import { _decorator, Camera, Component, instantiate, log, Prefab, Scene } from 'cc';
+﻿import { _decorator, Camera, Component, instantiate, log, Prefab, Scene, Node } from 'cc';
 import { SlotScene } from './Slot/SlotScene';
 import { ISlotPresenter } from './Slot/SlotPresenter';
 import { ApplicationContext, IApplicationContext } from './ApplicationContext';
@@ -40,27 +40,8 @@ class Main
     {
         const applicationContext = this.CreateApplicationContext();
         const userContext = this.CreateUserContext();
-
-        const mainPagePresenter = await this.InstallMainPageScene(applicationContext, userContext);
-        await mainPagePresenter.Open();
-
-        const lobbyPath = {
-            Id: PageName.Lobby,
-            Args: [],
-        };
-        const navigator = new Navigator(lobbyPath);
-
-        const lobbyPresenter = MakeLazyAsync(() => this.InstallLobbyScene(applicationContext, userContext, navigator));
-        const slotPresenter = MakeLazyAsync(() => this.InstallSlotScene(applicationContext, userContext, navigator));
-
-        const router = new Router(
-            navigator,
-            this.CreatePageHandler(
-                lobbyPresenter,
-                slotPresenter));
-
-        const cts = new CancelTokenSource();
-        await router.Run(cts.Token);
+        await this.WaitLogin(applicationContext, userContext);
+        await this.RunLobby(applicationContext, userContext);
     }
 
     private CreateApplicationContext(): IApplicationContext
@@ -73,24 +54,60 @@ class Main
         return new UserContext();
     }
 
-    private CreatePageHandler(
-        lobbyPresenter: ILobbyPresenter,
-        slotPresenter: ISlotPresenter): ReadonlyMap<string, Func<Promise<void>, [ReadonlyArray<any>]>>
+    private async WaitLogin(
+        applicationContext: IApplicationContext,
+        userContext: IUserContext): Promise<void>
     {
+        const mainPagePresenter = await this.InstallMainPageScene(applicationContext, userContext);
+        await mainPagePresenter.Open();
+    }
+
+    private async RunLobby(
+        applicationContext: IApplicationContext,
+        userContext: IUserContext): Promise<void>
+    {
+        const lobbyPath = {
+            Id: PageName.Lobby,
+            Args: [],
+        };
+        const navigator = new Navigator(lobbyPath);
+        const router = new Router(
+            navigator,
+            this.CreatePageHandler(applicationContext, userContext, navigator));
+
+        const cts = new CancelTokenSource();
+        await router.Run(cts.Token);
+    }
+
+    private CreatePageHandler(
+        applicationContext: IApplicationContext,
+        userContext: IUserContext,
+        navigator: INavigator): ReadonlyMap<string, Func<Promise<void>, [ReadonlyArray<any>]>>
+    {
+        const lobbyPresenter = MakeLazyAsync(() => this.InstallLobbyScene(applicationContext, userContext, navigator));
+        const slotPresenter = MakeLazyAsync(() => this.InstallSlotScene(applicationContext, userContext, navigator));
+
         return new Map<string, Func<Promise<void>, [ReadonlyArray<any>]>>([
             [PageName.Lobby, args => lobbyPresenter.Open()],
             [PageName.Slot, args => slotPresenter.Open()],
         ]);
     }
 
+    private async LoadScene(
+        applicationContext: IApplicationContext,
+        path: string): Promise<Node>
+    {
+        const scenePrefab = await applicationContext.AssetLoader.Load(path, Prefab);
+        const scene = instantiate(scenePrefab);
+        applicationContext.MainScene.addChild(scene);
+        return scene;
+    }
+
     private async InstallMainPageScene(
         applicationContext: IApplicationContext,
         userContext: IUserContext): Promise<IMainPagePresenter>
     {
-        const scenePrefab = await applicationContext.AssetLoader.Load("Scene/MainPageScene", Prefab);
-        const scene = instantiate(scenePrefab);
-        applicationContext.MainScene.addChild(scene);
-
+        const scene = await this.LoadScene(applicationContext, "Scene/MainPageScene");
         return scene
             .getComponent(MainPageScene)
             .Install(applicationContext.CanvasManager);
@@ -101,10 +118,7 @@ class Main
         userContext: IUserContext,
         navigator: INavigator): Promise<ILobbyPresenter>
     {
-        const scenePrefab = await applicationContext.AssetLoader.Load("Scene/LobbyScene", Prefab);
-        const scene = instantiate(scenePrefab);
-        applicationContext.MainScene.addChild(scene);
-
+        const scene = await this.LoadScene(applicationContext, "Scene/LobbyScene");
         return scene
             .getComponent(LobbyScene)
             .Install(applicationContext.CanvasManager, applicationContext.AssetLoader, navigator);
@@ -115,10 +129,7 @@ class Main
         userContext: IUserContext,
         navigator: INavigator): Promise<ISlotPresenter>
     {
-        const scenePrefab = await applicationContext.AssetLoader.Load("Scene/SlotScene", Prefab);
-        const scene = instantiate(scenePrefab);
-        applicationContext.MainScene.addChild(scene);
-
+        const scene = await this.LoadScene(applicationContext, "Scene/SlotScene");
         return scene
             .getComponent(SlotScene)
             .Install(userContext.SlotModel, navigator, applicationContext.CanvasManager);
