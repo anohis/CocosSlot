@@ -11,7 +11,7 @@ export class EventBinder<T> implements IDisposable
         this._unbindAction = () => { };
     }
 
-    public ReBind(handler: T): void
+    public Rebind(handler: T): void
     {
         this._unbindAction();
         this._bind(handler);

@@ -60,6 +60,6 @@ export class SlotView extends Component implements ISlotView
             return;
         }
 
-        this._backBtnClickEvent.ReBind(prop.OnBackBtnClicked);
+        this._backBtnClickEvent.Rebind(prop.OnBackBtnClicked);
     }
 }

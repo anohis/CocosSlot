@@ -60,6 +60,6 @@ export class MainPageView extends Component implements IMainPageView
             return;
         }
 
-        this._onClickEventBinder.ReBind(prop.OnLoginBtnClicked);
+        this._onClickEventBinder.Rebind(prop.OnLoginBtnClicked);
     }
 }

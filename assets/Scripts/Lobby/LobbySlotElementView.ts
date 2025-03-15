@@ -43,7 +43,7 @@ export class LobbySlotElementView extends Component implements ILobbySlotElement
 
     public Render(prop: Property): void
     {
-        this._buttonClickEvent.ReBind(prop.OnClick);
+        this._buttonClickEvent.Rebind(prop.OnClick);
         this.LoadIconAsync(prop.Icon);
     }
 
