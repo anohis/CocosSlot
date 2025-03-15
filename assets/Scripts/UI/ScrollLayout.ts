@@ -513,6 +513,10 @@ class DisposeVisitor implements IVisitor
 
     public VisitPooledElement<T>(element: PooledElement<T>): void
     {
+        if (element.Transform == null)
+        {
+            return;
+        }
         element.Despawn();
     }
 
