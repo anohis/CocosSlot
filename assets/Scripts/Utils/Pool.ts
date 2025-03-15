@@ -1,5 +1,6 @@
 import { Component, __private, instantiate } from "cc";
 import { Action } from "./Action";
+import { Func } from "./Func";
 
 type ComponentConstructor<T> = __private.__types_globals__Constructor<T> | __private.__types_globals__AbstractedConstructor<T>;
 
@@ -36,6 +37,34 @@ export class ComponentPool<T extends Component> implements IPool<T>
             instance = node.getComponent(this._ctor);
             this._onInstantiateHandler(instance);
         }
+        this._onSpawnHandler(instance);
+        return instance;
+    }
+
+    public Despawn(instance: T): void 
+    {
+        this._onDespawnHandler(instance);
+        this._pool.push(instance);
+    }
+}
+
+export class Pool<T> implements IPool<T>
+{
+    private readonly _pool: T[];
+
+    constructor(
+        private readonly _factory: Func<T>,
+        private readonly _onSpawnHandler: Action<[T]> = () => { } ,
+        private readonly _onDespawnHandler: Action<[T]> = () => { })
+    {
+        this._pool = [];
+    }
+
+    public Spawn(): T 
+    {
+        const instance = this._pool.length > 0
+            ? this._pool.pop()
+            : this._factory();
         this._onSpawnHandler(instance);
         return instance;
     }
