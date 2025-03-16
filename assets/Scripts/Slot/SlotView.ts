@@ -11,6 +11,7 @@ import { IAssetLoader } from '../AssetLoader';
 import { ISlotModel } from './SlotModel';
 import { CancelTokenSource, ICancelToken } from '../Utils/Promise/CancelablePromise';
 import { DelayTime, NextFrame } from '../Utils/Promise/DelayPromise';
+import { WaitUntil } from '../Utils/Promise/WaitPromise';
 const { ccclass, property } = _decorator;
 
 export interface ISlotView
@@ -147,13 +148,14 @@ class SlotFlow
 
     public async Run(cancelToken: ICancelToken): Promise<void>
     {
-        let flows: Promise<void>[] = [];
+        let spinFlows: Promise<void>[] = [];
+        let stopFlows: Promise<void>[] = [];
         let tokens: CancelTokenSource[] = [];
         for (const flow of this._reelFlows)
         {
             const cts = new CancelTokenSource();
             tokens.push(cts);
-            flows.push(flow.Run(cts.Token, () => ['a', 'b', 'c']));
+            spinFlows.push(flow.Spin(cts.Token));
             await DelayTime(50);
         }
 
@@ -165,15 +167,21 @@ class SlotFlow
                 for (let i = 0; i < tokens.length - 1; i++)
                 {
                     tokens[i].Cancel();
-                    await NextFrame();
+                    await spinFlows[i];
+                    stopFlows.push(this._reelFlows[i].Stop(['a', 'b', 'c']));
                 }
                 await DelayTime(1000);
-                tokens[tokens.length - 1].Cancel();
+                const lastIndex = this._reelFlows.length - 1;
+                tokens[lastIndex].Cancel();
+                await spinFlows[lastIndex];
+                stopFlows.push(this._reelFlows[lastIndex].Stop(['a', 'b', 'c']));
             })();
         };
         cancelToken.Subscribe(onCancel);
 
-        await Promise.all(flows);
+        await Promise.all(spinFlows);
+        await WaitUntil(() => stopFlows.length >= spinFlows.length);
+        await Promise.all(stopFlows);
     }
 }
 
@@ -195,9 +203,8 @@ class ReelFlow
         this._slotModel = slotModel;
     }
 
-    public async Run(
-        cancelToken: ICancelToken,
-        resultGetter: Func<ReadonlyArray<string>>): Promise<void>
+    public async Spin(
+        cancelToken: ICancelToken): Promise<void>
     {
         await this.TweenReelWithOffsetY(0, 5, 0.1, 'quadIn');
         await this.TweenReelWithOffsetY(5, 0, 0.1, 'quadIn');
@@ -205,8 +212,11 @@ class ReelFlow
         {
             await this.TweenReelWithOffsetY(0, -this._reelDistance, 0.25, 'linear');
         }
+    }
 
-        const result = resultGetter();
+    public async Stop(
+        result: ReadonlyArray<string>): Promise<void>
+    {
         await this.TweenReelWithOffsetY(0, -this._reelDistance, 1, 'quadOut', i =>
         {
             return i < result.length
