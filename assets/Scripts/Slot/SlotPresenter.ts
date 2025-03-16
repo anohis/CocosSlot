@@ -1,6 +1,6 @@
 import { log } from "cc";
 import { Action } from "../Utils/Action";
-import { NextFrame } from "../Utils/Promise/DelayPromise";
+import { DelayFrame, DelayTime, NextFrame } from "../Utils/Promise/DelayPromise";
 import { ReactiveProperty } from "../Utils/ReactiveProperty";
 import { ISlotModel } from "./SlotModel";
 import { ISlotView, Property } from "./SlotView";
@@ -32,7 +32,7 @@ export class SlotPresenter implements ISlotPresenter
 
         while (this._state !== State.Close)
         {
-            this._state = this.HandleState(this._state);
+            this._state = await this.HandleState(this._state);
             await NextFrame();
         }
 
@@ -45,10 +45,11 @@ export class SlotPresenter implements ISlotPresenter
         return Property.Default.With({
             IsVisible: true,
             OnBackBtnClicked: () => this.ExecuteIfIdle(() => this._state = State.Back),
+            OnSpinBtnClicked: () => this.ExecuteIfIdle(() => this._state = State.Spin),
         });
     }
 
-    private HandleState(state: State): State
+    private async HandleState(state: State): Promise<State>
     {
         switch (state)
         {
@@ -65,6 +66,24 @@ export class SlotPresenter implements ISlotPresenter
             case State.Back:
                 this._navigator.Back();
                 return State.Close;
+            case State.Spin:
+                this._prop.Value = this._prop.Value.With(
+                    {
+                        ShouldSpin: true,
+                    });
+                await DelayTime(3000);
+                this._prop.Value = this._prop.Value.With(
+                    {
+                        ShouldSpin: false,
+                        ShouldStopSpin: true,
+                        Result: ['a', 'b', 'c'],
+                    });
+                await NextFrame();
+                this._prop.Value = this._prop.Value.With(
+                    {
+                        ShouldStopSpin: false,
+                    });
+                return State.Idle;
         }
         throw new Error(`unexpected state ${state}`);
     }
@@ -86,4 +105,5 @@ enum State
     Idle,
     Close,
     Back,
+    Spin,
 }

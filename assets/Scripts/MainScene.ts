@@ -132,6 +132,10 @@ class Main
         const scene = await this.LoadScene(applicationContext, "Scene/SlotScene");
         return scene
             .getComponent(SlotScene)
-            .Install(userContext.SlotModel, navigator, applicationContext.CanvasManager);
+            .Install(
+                userContext.SlotModel,
+                navigator,
+                applicationContext.CanvasManager,
+                applicationContext.AssetLoader);
     }
 }
